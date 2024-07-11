@@ -6,7 +6,7 @@ import (
 )
 
 func TestParse(t *testing.T) {
-	parser := &StandardCronParser{}
+	parser := &CronParserStruct{}
 
 	tests := []struct {
 		cronString string
@@ -61,7 +61,7 @@ func TestParse(t *testing.T) {
 }
 
 func TestParseInvalid(t *testing.T) {
-	parser := &StandardCronParser{}
+	parser := &CronParserStruct{}
 
 	invalidCronStrings := []string{
 		"*/15 0 1,15 *",
@@ -76,5 +76,51 @@ func TestParseInvalid(t *testing.T) {
 				t.Fatalf("Expected error for invalid cron string: %s", cronString)
 			}
 		})
+	}
+}
+
+func TestParseField(t *testing.T) {
+	tests := []struct {
+		field string
+		min   int
+		max   int
+		want  []string
+	}{
+		{"*", 0, 59, generateRange(0, 59)},
+		{"*/15", 0, 59, generateStepRange(0, 59, 15)},
+		{"1,15", 1, 31, []string{"1", "15"}},
+		{"1-5", 0, 6, generateRange(1, 5)},
+		{"0", 0, 23, []string{"0"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.field, func(t *testing.T) {
+			if got := parseField(tt.field, tt.min, tt.max); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("parseField(%v, %v, %v) = %v, want %v", tt.field, tt.min, tt.max, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGenerateRange(t *testing.T) {
+	start := 1
+	end := 5
+	expected := []string{"1", "2", "3", "4", "5"}
+
+	result := generateRange(start, end)
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("expected %v, got %v", expected, result)
+	}
+}
+
+func TestGenerateStepRange(t *testing.T) {
+	start := 0
+	end := 30
+	step := 10
+	expected := []string{"0", "10", "20", "30"}
+
+	result := generateStepRange(start, end, step)
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("expected %v, got %v", expected, result)
 	}
 }
