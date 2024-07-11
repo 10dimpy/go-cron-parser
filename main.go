@@ -22,14 +22,14 @@ type CronFields struct {
 	Command    string
 }
 
-// StandardCronParser struct to implement CronParser
-type StandardCronParser struct{}
+// CronParserStruct struct to implement CronParser
+type CronParserStruct struct{}
 
 // Parse method to parse the cron string
-func (p *StandardCronParser) Parse(cronString string) (*CronFields, error) {
+func (p *CronParserStruct) Parse(cronString string) (*CronFields, error) {
 	fields := strings.Fields(cronString)
 	if len(fields) != 6 {
-		return nil, fmt.Errorf("invalid cron string")
+		return nil, fmt.Errorf("invalid cron string") // if fields are more or less than 6 then return errror
 	}
 
 	parsedFields := &CronFields{
@@ -83,24 +83,22 @@ func generateStepRange(start, end, step int) []string {
 	return result
 }
 
-// Main function
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Println("Usage: main \"<cron_string>\"")
-		os.Exit(1)
+		fmt.Println("Usage: main \"<cron_string>\"") // if we don't specify cron string then error will be returned
+		return
 	}
 
 	cronString := os.Args[1]
-	parser := &StandardCronParser{}
-	parsedFields, err := parser.Parse(cronString)
+	parser := &CronParserStruct{}
+	parsedFields, err := parser.Parse(cronString) // check wheter the string has 6 fields or not
 	if err != nil {
-		fmt.Println("Error:", err)
-		os.Exit(1)
+		fmt.Println("Error:", err) // on prod we can use logs instead of fmt
+		return
 	}
-	printParsedFields(parsedFields)
+	printParsedFields(parsedFields) // printing the fields
 }
 
-// Helper function to print parsed fields in table format
 func printParsedFields(fields *CronFields) {
 	fmt.Printf("%-14s%s\n", "minute", strings.Join(fields.Minute, " "))
 	fmt.Printf("%-14s%s\n", "hour", strings.Join(fields.Hour, " "))
